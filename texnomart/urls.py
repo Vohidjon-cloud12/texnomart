@@ -8,11 +8,14 @@ urlpatterns = [
     path('',views.ProductListView.as_view()),
     path('categories/', views.CategoryListApiView.as_view()),
     path('category/<slug:slug>/',views.CategoryAllProducts.as_view()),
+
+    # !!! 'texnomart-uz/category/add-category' yozsam  CategoryAllProducts ga o'tib qolyapti. shuning uchun 'add/category' yozdim!!!
+
     path('category/add/category/',views.CreateCategoryView.as_view()),
     path('category/<slug:slug>/delete/',views.DeleteCategoryView.as_view()),
     path('category/<slug:slug>/edit/',views.UpdateCategoryView.as_view()),
     # products
-    path('products/detail/<int:pk>/', views.ProductDetailView.as_view()),
+    path('product/detail/<int:pk>/', views.ProductDetailView.as_view()),
     path('product/<int:id>/edit/', views. PruductEditView.as_view()),
     path('product/<int:id>/delete/', views.ProductDeleteView.as_view()),
     # attributes

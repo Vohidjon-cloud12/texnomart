@@ -23,10 +23,6 @@ class CategoryListApiView(generics.ListAPIView):
     queryset = Category.objects.annotate(products_count=(Count('products')))
     serializer_class = CategorySerializer
 
-    # @method_decorator(cache_page(60, key_prefix="category_list"))  # 1 daqiqaga keshlab qo'yish
-    # def get(self, request, *args, **kwargs):
-    #     return super().get(request, *args, **kwargs)
-
 
 class CategoryAllProducts(GenericAPIView):
     queryset = Product.objects.select_related('category').prefetch_related(
@@ -72,18 +68,14 @@ class UpdateCategoryView(generics.RetrieveUpdateAPIView):
 class DeleteCategoryView(generics.DestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    lookup_field = 'slug'
 
     def get(self, request, *args, **kwargs):
-        slug = self.kwargs['slug']
-        category = get_object_or_404(Category, slug=slug)
-        serializer = CategorySerializer(category)
+        category = get_object_or_404(Category, slug=self.kwargs['slug'])
+        serializer = CategorySerializer(category, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    #
     def delete(self, request, *args, **kwargs):
-        slug = self.kwargs['slug']
-        category = get_object_or_404(Category, slug=slug)
+        category = get_object_or_404(Category, slug=self.kwargs['slug'])
         category.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -108,12 +100,12 @@ class ProductListView(generics.ListAPIView):
         return queryset
 
 
-
 class ProductDetailView(generics.GenericAPIView):
     queryset = Product.objects.prefetch_related(
         Prefetch('images', queryset=Image.objects.filter(is_primary=True)),
         Prefetch('comments', queryset=Comments.objects.select_related('user')),
-        Prefetch('attributes', queryset=Attribute.objects.select_related('attribute_value').select_related('attribute_key')),
+        Prefetch('attributes',
+                 queryset=Attribute.objects.select_related('attribute_value').select_related('attribute_key')),
     ).annotate(rating=Avg('comments__rating'))
     serializer_class = ProductDetailSerializer
 
@@ -135,6 +127,7 @@ class ProductDetailView(generics.GenericAPIView):
         serializer = self.get_serializer(product)
         return Response(serializer.data)
 
+
 class PruductEditView(generics.RetrieveUpdateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
@@ -142,10 +135,17 @@ class PruductEditView(generics.RetrieveUpdateAPIView):
 
 
 class ProductDeleteView(generics.RetrieveDestroyAPIView):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-    lookup_field = 'id'
+    def get(self, request, *args, **kwargs):
+        data = Product.objects.get(id=self.kwargs['id'])
+        if data:
+            serializer = ProductSerializer(data, context={'request': request})
+            return Response(serializer.data)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
+    def delete(self, request, *args, **kwargs):
+        data = Product.objects.get(id=self.kwargs['id'])
+        data.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class AttributeKeyView(GenericAPIView):
     queryset = Attribute.objects.all()

@@ -6,59 +6,53 @@ from texnomart.models import Category, Product, Attribute, AttributeKey, Attribu
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    product_count = serializers.SerializerMethodField()
+    image_of_category = serializers.SerializerMethodField()
+    product_count = serializers.IntegerField(source='products_count', read_only=True)
+    # total_price_of_products = serializers.IntegerField(source='products_price_sum', read_only=True)
 
-    def get_product_count(self, obj):
-        return obj.products_count
+    def get_image_of_category(self, obj):
+        request = self.context.get('request')
+        image = obj.image
+        if image:
+            return request.build_absolute_uri(image.url)
+        return None
 
     class Meta:
         model = Category
         fields = '__all__'
 
+    # product_count = serializers.SerializerMethodField()
+    #
+    # def get_product_count(self, obj):
+    #     return obj.product_count
 
-# class ProductSerializer(serializers.ModelSerializer):
-#     user_like = serializers.SerializerMethodField()
-#     category = serializers.SerializerMethodField()
-#     image = serializers.SerializerMethodField()
-#
-#     def get_user_like(self, obj):
-#         return hasattr(obj, 'user_liked ') and bool(obj.user_liked)
-#
-#     def get_category(self, obj):
-#         return obj.category.title
-#
-#     def get_image(self, obj):
-#         request = self.context.get('request')
-#         image = next((img for img in obj.images.all() if img.is_primary), None)
-#         if image:
-#             return request.build_absolute_uri(image.image.url)
-#         return None
-#
-#     class Meta:
-#         model = Product
-#         fields = '__all__'
+
+# class Meta:
+#     model = Category
+#     fields = '__all__'
+
 
 class ProductSerializer(serializers.ModelSerializer):
-    user_like = serializers.SerializerMethodField()
-    category = serializers.SerializerMethodField()
-    image = serializers.SerializerMethodField()
-
-    def get_user_like(self, obj):
-        return bool(obj.user_like)
-
-    def get_category(self, obj):
-        return obj.category.title
-
     def get_image(self, obj):
         request = self.context.get('request')
         image = next((img for img in obj.images.all() if img.is_primary), None)
         if image:
             return request.build_absolute_uri(image.image.url)
         return None
+    image = serializers.SerializerMethodField()
+    user_like = serializers.SerializerMethodField()
+    category = serializers.SerializerMethodField()
+
+    def get_category(self, obj):
+        return obj.category.title
+
+    def get_user_like(self, obj):
+        return hasattr(obj, 'user_liked') and bool(obj.user_liked)
 
     class Meta:
         model = Product
-        fields = '__all__'
+        fields = ['id', 'name', 'slug', 'price', 'discounted_price', 'discount', 'user_like', 'image', 'rasroch_price',
+                  'category', 'created_at']
 
 
 class ProductDetailSerializer(serializers.ModelSerializer):

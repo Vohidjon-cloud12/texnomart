@@ -28,8 +28,8 @@ def product_post_save(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Category)
 def category_post_save(sender, instance, created, **kwargs):
     if created:
-        subject = 'Hello from Texnomart!'
-        message = f'Category {instance.name} has been created recently.'
+        subject = 'from Texnomart by <BOYQOZIYEV VOHIDJON>'
+        message = f'Category {instance.title} has been created recently.'
         email_from = settings.EMAIL_HOST_USER
         email_to = ['jasurmavlonov24@gmail.com']
         try:
